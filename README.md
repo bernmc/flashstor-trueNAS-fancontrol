@@ -1,6 +1,6 @@
 ## INSTALLING TRUENAS SCALE WITH FANCONTROL ON ASUSTOR FLASHSTOR DEVICES
 
-This project describes installing TrueNAS on Asustor's Flashstor 6 and 12 Pro devices, and enabling temperature monitoring and fan control on these devices under TrueNAS SCALE 22.12.3.3. It is built on the original ideas in[ John Davis' gist describing Installing Debian on the Nimbustor4/2 devices.](https://gist.github.com/johndavisnz/bae122274fc6f0e006fdf0bc92fe6237 "view John's gist")
+This project describes installing TrueNAS on Asustor's Flashstor 6 and 12 Pro devices, and enabling temperature monitoring and fan control on these devices under TrueNAS SCALE 22.12.3.3. It is built on the original ideas in[ John Davis&#39; gist describing Installing Debian on the Nimbustor4/2 devices.](https://gist.github.com/johndavisnz/bae122274fc6f0e006fdf0bc92fe6237 "view John's gist")
 
 While not officially supported, Asustor appear to quietly endorse installing TrueNAS on their devices - they even have a howto video in their youtube Asustor College: [https://youtu.be/YytWFtgqVy0] (TrueNAS Core Asustor install)]
 
@@ -55,7 +55,7 @@ Here's a basic outline of what you will need to do to get TrueNAS SCALE working 
 * [You could also do all of this by SSH and use a fancy AI-enabled editor like [Warp](https://app.warp.dev/referral/EJGN8D).]
 * You now have the option of prefacing all/most of the commands that follow with "**sudo**", or just go for god-mode with "**sudo su**". I'm going to assume you're god for the rest of this guide.
 * If your `sudo su` was succesful, your shell prefix should change to **`root@truenas`** . Unleash hell
-* [Note that if you opt for the safer option of sudo -ing each command individually, you may have to get a bit smart with some commands as linux will only apply sudo to the first part of a two part command (because: Reasons). eg:	`echo 155 > /sys/class/hwmon/hwmon10/pwm1 ` will change the fan speed (if it's on hwmon10 )if you've sudo su 'd (ie god mode), but you will need to use `echo 155 | sudo tee /sys/class/hwmon/hwmon10/pwm1` if you're not root, and sudo'ing each command individually.]
+* [Note that if you opt for the safer option of sudo -ing each command individually, you may have to get a bit smart with some commands as linux will only apply sudo to the first part of a two part command (because: Reasons). eg: 	`echo 155 > /sys/class/hwmon/hwmon10/pwm1 `  will change the fan speed (if it's on hwmon10 )if you've sudo su 'd (ie god mode), but you will need to use  `echo 155 | sudo tee /sys/class/hwmon/hwmon10/pwm1` if you're not root, and sudo'ing each command individually.]
 
 ---
 
@@ -83,34 +83,35 @@ This guide assumes you're logged in as the default admin user - you'll need to m
 
 Execute the following commands in sequence (copy & paste each line and hit enter)
 
-Clone the kmod repository and change to its directory
+- Clone the kmod repository and change to its directory
 
 `git clone https://github.com/mafredri/asustor-platform-driver`
+
 `cd asustor-platform-driver`
 
-Check out the it87 branch
+- Check out the it87 branch
 
 `git checkout it87`
 
-Compile the kmod
+- Compile the kmod
 
 `make`
 
-Install the kmod
+- Install the kmod
 
 `make install`
 
 *(Note - occasionally the system seems to get stuck on this command. If nothing happens for a few minutes, `<ctrl-c>`  to interrupt the command, and then issue it again - it usually works the 2nd time)*
 
-Update module dependencies
+- Update module dependencies
 
 `depmod-a`
 
-Load the module
+- Load the module
 
 `modprobe-a asustor_it87`
 
-Change back to the admin home directory
+- Change back to the admin home directory
 
 `cd ..`
 
@@ -138,7 +139,7 @@ temp3:       -128.0°C  (low  = +86.0°C, high = +125.0°C)
 intrusion0:  ALARM
 ```
 
-The `fan1 1433 RPM` line is your asustor's fan, running at the default low speed setting.
+The  `fan1 1433 RPM`  line is your asustor's fan, running at the default low speed setting.
 
 ---
 
@@ -146,7 +147,7 @@ The `fan1 1433 RPM` line is your asustor's fan, running at the default low speed
 
 The kmod will need to be re-installed whenever the TrueNAS kernel is altered - eg with a TrueNAS update. The following script will run at each boot and check whether the kmod exists and re-install it if not. It then runs the fan control script.
 
-The easiest way to create the two necessary scripts to enable fan control is to use `nano` to create the scripts, and then just copy and paste the contents of the scripts in this gist into `nano`:
+The easiest way to create the two necessary scripts to enable fan control is to use `nano` to create the scripts, and then just copy and paste the contents of the scripts in this repository into `nano`:
 
 Make sure you're in the `/home/admin` directory
 
@@ -154,7 +155,7 @@ Make sure you're in the `/home/admin` directory
 
 This will open up a blank file, with the check_asustor filename at the top
 
-Copy the contents of the `check_asustor_it87.kmod.sh` script in this gist, and paste them into your new file in nano.
+Copy the contents of the `check_asustor_it87.kmod.sh` script in thisrepository, and paste them into your new file in nano.
 
 Hit `<ctrl-o>` and `enter` to save the file, then `<ctrl-x>` to exit
 
@@ -172,9 +173,9 @@ Make sure you're in the `/home/admin` directory
 
 `nano temp_monitor.sh`
 
-This will open up a blank file, with the check_asustor filename at the top
+This will open up a blank file, with the temp_monitor filename at the top
 
-Copy the contents of the `temp_monitor.sh` script in this gist, and paste them into your new file in nano.
+Copy the contents of the `temp_monitor.sh` script in this repository, and paste them into your new file in nano.
 
 Modify any variables you want to
 
@@ -214,7 +215,7 @@ Hit the **Save** button
 
 Your work is done. Reboot your Flashstor. When it comes back online, you should hear the fan speed change.
 
-Try stressing the NAS - copy some files, run speed test etc and see if the fan speed changes. Remeber that if you've used the defaults, nothing will happen until the CPU gets hotter than 50C, or any of the NVMe's get hotter than 35C.
+Try stressing the NAS - copy some files, run speed test etc and see if the fan speed changes. Remember that if you've used the defaults, nothing will happen until the CPU gets hotter than 50C, or any of the NVMe's get hotter than 35C.
 
 You can go back to the shell at any point and enter `sensors` at the command line to check the fan speed (you don't need to use sudo or be root for this. )
 
@@ -238,11 +239,14 @@ HDD and System temp thresholds - these are the temps (in degrees celsius) above 
 
 **sys_threshold=50**
 
-Minimum Fan speed  - sets the minimum fan speed using pwm (Pulse Width Modulation). values It is set to 60 which is 1580 rpm. Here are some pwm values for different fan speeds. A pwm of 255 is maximum fan speed.
+Minimum Fan speed  - sets the minimum fan speed using pwm (Pulse Width Modulation) values. It is set to 60 which is 1580 rpm. Here are some pwm values for different fan speeds. A pwm of 255 is maximum fan speed.
 
 60 = 1580
+
 70 = 1757
+
 80 = 1970
+
 90 = 2070
 
 **min_pwm=60**
@@ -257,7 +261,7 @@ Temperature deltas: You don't want the fan responding to every tiny temp change 
 
 You may want to play with these. The script uses slightly different exponential curves for system and NVMe temps to ramp the fan speed up gradually at first, and then more rapidly the more the temp rises.
 
-**For the NVMe's**, the curve is *temp squared / 1.8*. I used 1.8 as a fudge factor because this will set the fan speed to maximum when the drives hit 60 degrees (most NVMe data sheets specify operating temps of around 25-70 degrees.) Change the fudge factor if you want the fan to hit max speed at a different temp.
+**For the NVMe's**, the curve is *temp squared / 1.8*. I used 1.8 as a fudge factor because this will set the fan speed to maximum when the drives hit 60 degrees (most NVMe data sheets specify operating temps of around 35-70 degrees.) Change the fudge factor if you want the fan to hit max speed at a different temp.
 
 *Note that in bash, you can't divide by a non integer number: (temp * temp) / 1.8 will give an error, so you have to be a smartarse and use something like (temp * temp) * 10/18*
 

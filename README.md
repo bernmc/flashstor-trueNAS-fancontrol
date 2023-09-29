@@ -2,7 +2,7 @@
 
 This project describes installing TrueNAS on Asustor's Flashstor 6 and 12 Pro devices, and enabling temperature monitoring and fan control on these devices under TrueNAS SCALE 22.12.3.3. It is built on the original ideas in[ John Davis' gist describing Installing Debian on the Nimbustor4/2 devices.](https://gist.github.com/johndavisnz/bae122274fc6f0e006fdf0bc92fe6237 "view John's gist")
 
-While not officially supported, Asustor appear to quietly endorse installing TrueNAS on their devices - they even have a howto video in their youtube Asustor College: [https://youtu.be/YytWFtgqVy0](TrueNAS Core Asustor install)]
+While not officially supported, Asustor appear to quietly endorse installing TrueNAS on their devices - they even have a howto video in their youtube Asustor College: [https://youtu.be/YytWFtgqVy0] (TrueNAS Core Asustor install)]
 
 The issue with installing TrueNAS on the Asustors is that there is no native support for temperature monitoring and fan control. Additionally, iXsystems (TrueNAS developer) actively discourages tinkering with the innards of their system.
 
@@ -46,7 +46,7 @@ Here's a basic outline of what you will need to do to get TrueNAS SCALE working 
 
 ---
 
-## Install TrueNAS SCALE and access the shell
+## 1. Install TrueNAS SCALE and access the shell
 
 * Installing SCALE is not covered here - see youtube link above, and find tutorials on the internets. There are several.
 * Once you've installed, log in to the TrueNas web interface, and make sure your user has sudo permissions:  this tutorial assumes you're using the default admin user set up during install.
@@ -59,9 +59,9 @@ Here's a basic outline of what you will need to do to get TrueNAS SCALE working 
 
 ---
 
-## Check the status of your current temp sensors
+## 2. Check the status of your current temp sensors
 
-First, it's useful to check which sensors your system is seeing so that you'll know that things have changed when you install the asustor kernal module.
+First, it's useful to check which sensors your system is seeing so that you'll know that things have changed when you install the asustor kernel module.
 
 Execute the following commands in sequence (copy & paste each line and hit enter)
 
@@ -75,7 +75,7 @@ You should see a long list of sensors, but no reference to an it8625 or fan spee
 
 ---
 
-## Compile and install the it87 kmod
+## 3. Compile and install the it87 kmod
 
 For reference, the link to mafredri's patched version of the mainline it87 kernel platform driver is here: [Asustor-platform-driver](https://github.com/mafredri/asustor-platform-driver/blob/it87/README.md).
 
@@ -142,7 +142,7 @@ The `fan1 1433 RPM` line is your asustor's fan, running at the default low speed
 
 ---
 
-## Create the check_asustor_it87.kmod.sh script
+## 4. Create the check_asustor_it87.kmod.sh script
 
 The kmod will need to be re-installed whenever the TrueNAS kernel is altered - eg with a TrueNAS update. The following script will run at each boot and check whether the kmod exists and re-install it if not. It then runs the fan control script.
 
@@ -164,7 +164,7 @@ Make the script executable with
 
 ---
 
-## Create the temp_monitor.sh script
+## 5. Create the temp_monitor.sh script
 
 There are a number of variables in this script that you may want to modify, depending on your personal preferences and circumstances. See the section below for a brief description, although they're all commented in the script and should be self-explanatory.
 
@@ -186,7 +186,7 @@ Make the script executable with
 
 ---
 
-## Add the check script as a TrueNAS init script
+## 6. Add the check script as a TrueNAS init script
 
 In the TrueNAS web console, go to **System Settings** --> **Advanced**
 
@@ -210,7 +210,7 @@ Hit the **Save** button
 
 ---
 
-## Reboot baby!
+## 7. Reboot baby!
 
 Your work is done. Reboot your Flashstor. When it comes back online, you should hear the fan speed change.
 
@@ -220,7 +220,7 @@ You can go back to the shell at any point and enter `sensors` at the command lin
 
 ---
 
-## Tweaking the script
+## 8. Tweaking the script
 
 There are a number of variables in the script that you can use to customise the fan/temperature response. How you do this will depend on your circumstances, and how tolerant you are of fan noise versus chip temperatures.
 

@@ -38,4 +38,4 @@ else
 fi
 
 # Run the fan control script
-nohup /root/temp_monitor.sh >/dev/null 2>&1 &
+nohup /home/admin/temp_monitor.sh >/dev/null 2>&1 &

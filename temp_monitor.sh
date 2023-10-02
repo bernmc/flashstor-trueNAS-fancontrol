@@ -24,7 +24,7 @@
 #    IMPORTANT: must use the it87 branch
 
 
-# uses sqr(temp above threshold)+base_pwm for cpu/sys response curve
+# uses sqr(temp above threshold/2)+base_pwm for cpu/sys response curve
 # uses sqr(temp above threshold/1.8)+base_pwm for NVME response curve
 #
 # this gives a slow initial ramp up and a rapid final ramp up across the desired temp range 

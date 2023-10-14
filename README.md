@@ -1,5 +1,7 @@
 ## INSTALLING TRUENAS SCALE WITH FANCONTROL ON ASUSTOR FLASHSTOR DEVICES
 
+14/10/23 - confirmed this mod survives the upgrade to TrueNAS-SCALE-22.12.4.2
+
 This project describes installing TrueNAS on Asustor's Flashstor 6 and 12 Pro devices, and enabling temperature monitoring and fan control on these devices under TrueNAS SCALE 22.12.3.3. It is built on the original ideas in[ John Davis&#39; gist describing Installing Debian on the Nimbustor4/2 devices.](https://gist.github.com/johndavisnz/bae122274fc6f0e006fdf0bc92fe6237 "view John's gist")
 
 While not officially supported, Asustor appear to quietly endorse installing TrueNAS on their devices - they even have a howto video in their youtube Asustor College: [https://youtu.be/YytWFtgqVy0] (TrueNAS Core Asustor install)]
@@ -10,7 +12,7 @@ And if that's not enough, the NVMe drives in the Flashstors need to be handled d
 
 None of the existing fan control methods and scripts I found would work under these circumstances, so it was necessary to adapt them. And here we are!
 
-**IMPORTANT**: iX Systems appear to be progressively limiting the amount of under-the-hood-tinkering that you can do in TrueNAS-SCALE. At the time of writing (Sept 2023), *it is not possible to compile the kernal module as described below in the next version of SCALE - Cobia* as there is no access to the 'make' command. Tested in Cobia beta and RC - this may change in the release version, in which case I'll update this project.
+**IMPORTANT**: iX Systems appear to be progressively limiting the amount of under-the-hood-tinkering that you can do in TrueNAS-SCALE. At the time of writing (Sept 2023), *it is not possible to compile the kernel module as described below in the next version of SCALE - Cobia* as there is no access to the 'make' command. Tested in Cobia beta and RC - this may change in the release version, in which case I'll update this project.
 
 ---
 

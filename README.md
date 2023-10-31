@@ -2,6 +2,12 @@
 
 14/10/23 - confirmed this mod survives the upgrade to TrueNAS-SCALE-22.12.4.2
 
+**UPDATE: TrueNAS-SCALE Corbia (23.10.0):** Note that the following guide was written for TrueNAS-SCALE 22.x (Bluefin). With the release of 23.x, iX have further locked down the appliance. If you upgrade from 22.x, the shell and post-init scripts will survive, but the kmod will not 'make' and install as these commands are no longer available. At the moment, the only way I know to bypass this is to enable developer mode with `install-dev-tools`
+
+You should note that enabling developer mode will mean that iX will automatically delete any support requests you generate - ie, you're on your own buddy! It's not meant to be used for deployed TrueNAS systems, but if you're using unsupported hardware, it's the only way I know of being able to install the necessary kmods etc.
+
+---
+
 This project describes installing TrueNAS on Asustor's Flashstor 6 and 12 Pro devices, and enabling temperature monitoring and fan control on these devices under TrueNAS SCALE 22.12.3.3. It is built on the original ideas in[ John Davis&#39; gist describing Installing Debian on the Nimbustor4/2 devices.](https://gist.github.com/johndavisnz/bae122274fc6f0e006fdf0bc92fe6237 "view John's gist")
 
 While not officially supported, Asustor appear to quietly endorse installing TrueNAS on their devices - they even have a howto video in their youtube Asustor College: [https://youtu.be/YytWFtgqVy0] (TrueNAS Core Asustor install)]
@@ -28,7 +34,7 @@ Because: ZFS!
 
 ## CAVEATS
 
-* TrueNAS is an appliance. This is nerdspeak for 'don't be tinkering under the hood'. It's not a traditional Debian install, and trying to apt-get or update may break the system. The method detailed below does not need any additional packages to be installed, but it does use a custom kernel module, and some tinkering as root.
+* TrueNAS is an appliance. This is nerdspeak for 'don't be tinkering under the hood'. It's not a traditional Debian install, and trying to apt-get or update may break the system. The method detailed below does not need any additional packages to be installed, but it does use a custom kernel module, and some tinkering as root. (If you're on TrueNAS-SCALE 23.x, please see the note above)
 * Tinkering with GPIO input/outputs can be dangerous and lead to instability, corrupted data or a broken system.
 * I am an enthusiastic amateur. Not a programmer. I can Do My Research, copy and paste, and (revelation!) use generative AI to write code. So, I probably won't be able to answer your complex questions. I also can't guarantee that this will work on your system
 * In short, PMD (People May Die), the world might end etc. Do this stuff **at your own risk**, and don't come whining if something breaks. Don't install it on a Mission Critical System. Back up your data. Test it extensively before trusting it. In short, be a Grown Up.
@@ -41,10 +47,11 @@ Here's a basic outline of what you will need to do to get TrueNAS SCALE working 
 
 1. Install TrueNAS SCALE on your Flashstor
 2. Access the shell through the TrueNAS web interface (or via SSH) using a user with sufficient permissions to play at being root.
-3. Compile and install the it87 branch of mafredri's asustor-platform-driver kernel module (kmod)
-4. Install the check_asustor_it87.kmod.sh script - checks that the kmod exists at every reboot, and recompiles it if not
-5. Add the check_asustor_it87.kmod.sh script to TrueNAS' init scripts so that it runs after every boot.
-6. Install the custom fan control script - modified from John Davis' original script
+3. If you are on TrueNAS-SCALE 23.x (Corbia), enable Developer Mode
+4. Compile and install the it87 branch of mafredri's asustor-platform-driver kernel module (kmod)
+5. Install the check_asustor_it87.kmod.sh script - checks that the kmod exists at every reboot, and recompiles it if not
+6. Add the check_asustor_it87.kmod.sh script to TrueNAS' init scripts so that it runs after every boot.
+7. Install the custom fan control script - modified from John Davis' original script
 
 ---
 
@@ -60,6 +67,14 @@ Here's a basic outline of what you will need to do to get TrueNAS SCALE working 
 * [Note that if you opt for the safer option of sudo -ing each command individually, you may have to get a bit smart with some commands as linux will only apply sudo to the first part of a two part command (because: Reasons). eg: 	`echo 155 > /sys/class/hwmon/hwmon10/pwm1 `  will change the fan speed (if it's on hwmon10 )if you've sudo su 'd (ie god mode), but you will need to use  `echo 155 | sudo tee /sys/class/hwmon/hwmon10/pwm1` if you're not root, and sudo'ing each command individually.]
 
 ---
+
+## 1.5 Enable Developer Mode
+
+Only necessary for **TrueNAS-SCALE 23.x** (Corbia): Execute `install-dev-tools` from your root prompt. This will download and install a bunch of missing packages. It takes a few minutes. Once you've done this, don't bother trying to contact iX for help - they'll automatically delete any support requests.
+
+---
+
+
 
 ## 2. Check the status of your current temp sensors
 
@@ -107,11 +122,11 @@ Execute the following commands in sequence (copy & paste each line and hit enter
 
 - Update module dependencies
 
-`depmod-a`
+`depmod -a`
 
 - Load the module
 
-`modprobe-a asustor_it87`
+`modprobe -a asustor_it87`
 
 - Change back to the admin home directory
 

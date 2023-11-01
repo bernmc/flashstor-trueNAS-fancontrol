@@ -84,7 +84,7 @@ enter your admin password, and you should be in root@truenas[/home/admin]
 
 `sensors`
 
-You should see a long list of sensors, but no reference to an it8625 or fan speed. (See below for what this wil look like when the kmod is installed)
+You should see a long list of sensors, but no reference to an it8625 or fan speed. (See below for what this will look like when the kmod is installed)
 
 ---
 
@@ -168,7 +168,7 @@ Make sure you're in the `/home/admin` directory
 
 This will open up a blank file, with the check_asustor filename at the top
 
-Copy the contents of the `check_asustor_it87.kmod.sh` script in thisrepository, and paste them into your new file in nano.
+Copy the contents of the `check_asustor_it87.kmod.sh` script in this repository, and paste them into your new file in nano.
 
 Hit `<ctrl-o>` and `enter` to save the file, then `<ctrl-x>` to exit
 
@@ -241,6 +241,8 @@ There are a number of variables in the script that you can use to customise the 
 Also, remember that a constant noise is less intrusive than a variable noise - so a fan running at a constant 3000rpm may disturb you less than a fan that constantly varies between 2000 and 2500 rpm.
 
 The main tweak varaibles are towards the beginning of the script - they are all commented so should be self-explanatory, as is most of the script:
+
+**mailalerts = 1** : Be careful with this one! Set to 1, the system will fire off an email every time the temp changes (Provided you've set up email correctly in TrueNAS). Useful on initial install to make sure everything is working, or for debugging, but you're potentially going to get an email every 10 seconds. Set it to 0 as soon as you're happy with the script.
 
 **frequency** **= 10** : How often the script updates temps and potentially responds them. Default is 10 seconds. Change this if you want to increase or reduce the frequency of fan speed changes
 

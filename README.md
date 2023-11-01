@@ -2,7 +2,7 @@
 
 14/10/23 - confirmed this mod survives the upgrade to TrueNAS-SCALE-22.12.4.2
 
-**UPDATE: TrueNAS-SCALE Corbia (23.10.0):** Note that the following guide was written for TrueNAS-SCALE 22.x (Bluefin). With the release of 23.x, iX have further locked down the appliance. If you upgrade from 22.x, the shell and post-init scripts will survive, but the kmod will not 'make' and install as these commands are no longer available. At the moment, the only way I know to bypass this is to enable developer mode with `install-dev-tools`
+**UPDATE: TrueNAS-SCALE Cobia (23.10.0):** Note that the following guide was written for TrueNAS-SCALE 22.x (Bluefin). With the release of 23.x, iX have further locked down the appliance. If you upgrade from 22.x, the shell and post-init scripts will survive, but the kmod will not 'make' and install as these commands are no longer available. At the moment, the only way I know to bypass this is to enable developer mode with `install-dev-tools`
 
 You should note that enabling developer mode will mean that iX will automatically delete any support requests you generate - ie, you're on your own buddy! It's not meant to be used for deployed TrueNAS systems, but if you're using unsupported hardware, it's the only way I know of being able to install the necessary kmods etc.
 
@@ -17,8 +17,6 @@ The issue with installing TrueNAS on the Asustors is that there is no native sup
 And if that's not enough, the NVMe drives in the Flashstors need to be handled differently from traditional HDDs and SDDs. There's no convention as to how many temp sensors there are on an NVME drive, or what temperatures they monitor. The script therefor needs to deal with any number of temp sensors on anything up to 12 NVME drives.
 
 None of the existing fan control methods and scripts I found would work under these circumstances, so it was necessary to adapt them. And here we are!
-
-**IMPORTANT**: iX Systems appear to be progressively limiting the amount of under-the-hood-tinkering that you can do in TrueNAS-SCALE. At the time of writing (Sept 2023), *it is not possible to compile the kernel module as described below in the next version of SCALE - Cobia* as there is no access to the 'make' command. Tested in Cobia beta and RC - this may change in the release version, in which case I'll update this project.
 
 ---
 
@@ -47,7 +45,7 @@ Here's a basic outline of what you will need to do to get TrueNAS SCALE working 
 
 1. Install TrueNAS SCALE on your Flashstor
 2. Access the shell through the TrueNAS web interface (or via SSH) using a user with sufficient permissions to play at being root.
-3. If you are on TrueNAS-SCALE 23.x (Corbia), enable Developer Mode
+3. If you are on TrueNAS-SCALE 23.x (Cobia), enable Developer Mode
 4. Compile and install the it87 branch of mafredri's asustor-platform-driver kernel module (kmod)
 5. Install the check_asustor_it87.kmod.sh script - checks that the kmod exists at every reboot, and recompiles it if not
 6. Add the check_asustor_it87.kmod.sh script to TrueNAS' init scripts so that it runs after every boot.
@@ -62,7 +60,7 @@ Here's a basic outline of what you will need to do to get TrueNAS SCALE working 
 * You can edit other users through **Credentials --> Local Users --> select the user** and hit **EDIT.**  Scroll down to the bottom of the user edit box, and make sure the checkbox for "**Allow all sudo commands**" is checked. Optionally, check the "**Allow all sudo commands without password**" box. I'd recommend going back and unchecking that one when you're done - basic security. **Save** to get back to the main screen.
 * Select **System Settings --> Shell** from the side menu and you should find yourself inside TrueNAS' terminal
 * [You could also do all of this by SSH and use a fancy AI-enabled editor like [Warp](https://app.warp.dev/referral/EJGN8D).]
-* You now have the option of prefacing all/most of the commands that follow with "**sudo**", or just go for god-mode with "**sudo su**". I'm going to assume you're god for the rest of this guide.
+* You now have the option of prefacing all/most of the commands that follow with "**sudo**", or just go for god-mode with **`sudo su`**. I'm going to assume you're god for the rest of this guide.
 * If your `sudo su` was succesful, your shell prefix should change to **`root@truenas`** . Unleash hell
 * [Note that if you opt for the safer option of sudo -ing each command individually, you may have to get a bit smart with some commands as linux will only apply sudo to the first part of a two part command (because: Reasons). eg: 	`echo 155 > /sys/class/hwmon/hwmon10/pwm1 `  will change the fan speed (if it's on hwmon10 )if you've sudo su 'd (ie god mode), but you will need to use  `echo 155 | sudo tee /sys/class/hwmon/hwmon10/pwm1` if you're not root, and sudo'ing each command individually.]
 
@@ -70,11 +68,9 @@ Here's a basic outline of what you will need to do to get TrueNAS SCALE working 
 
 ## 1.5 Enable Developer Mode
 
-Only necessary for **TrueNAS-SCALE 23.x** (Corbia): Execute `install-dev-tools` from your root prompt. This will download and install a bunch of missing packages. It takes a few minutes. Once you've done this, don't bother trying to contact iX for help - they'll automatically delete any support requests.
+Only necessary for **TrueNAS-SCALE 23.x** (Cobia): Execute `install-dev-tools` from your root prompt. This will download and install a bunch of missing packages. It takes a few minutes. Once you've done this, don't bother trying to contact iX for help - they'll automatically delete any support requests.
 
 ---
-
-
 
 ## 2. Check the status of your current temp sensors
 

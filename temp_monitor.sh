@@ -264,7 +264,7 @@ function map_sys_temp() {
 
      if [[ $sys_desired_pwm -gt 255 ]] ; then
           # over max - truncate to max
-          hdd_desired_pwm=255
+          sdd_desired_pwm=255
      fi
 
      if [[ $debug -gt 1 ]] ; then

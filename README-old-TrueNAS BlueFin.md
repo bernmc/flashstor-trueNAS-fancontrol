@@ -1,20 +1,14 @@
 ## INSTALLING TRUENAS SCALE WITH FANCONTROL ON ASUSTOR FLASHSTOR DEVICES
 
-This repository was originally written for TrueNAS-SCALE Bluefin. Since then, TrueNAS has moved on (it's increasingly locked down), as has the original Asustor Platform driver kernel module.
+14/10/23 - confirmed this mod survives the upgrade to TrueNAS-SCALE-22.12.4.2
 
-These instructions and scripts have been updated (21 Oct 2024) and confirmed working with TrueNAS-SCALE-24.04.2.3 (Dragonfish). **It does NOT work with the current release candidate of TrueNAS-SCALE-24.10-RC.2 (Electric Eel)**. I will re-examine things when Electric Eel is officially released.
-
-**TrueNAS-SCALE Cobia (23.10.0****) and beyond:** Since the release of 23.x, iX have further locked down the appliance. If you upgrade from 22.x, and the original scripts, the shell and post-init scripts will survive, but the kmod will not 'make' and install as these commands are no longer available. At the moment, the only way I know to bypass this is to enable developer mode with `install-dev-tools.`
+**UPDATE: TrueNAS-SCALE Cobia (23.10.0):** Note that the following guide was written for TrueNAS-SCALE 22.x (Bluefin). With the release of 23.x, iX have further locked down the appliance. If you upgrade from 22.x, the shell and post-init scripts will survive, but the kmod will not 'make' and install as these commands are no longer available. At the moment, the only way I know to bypass this is to enable developer mode with `install-dev-tools`
 
 You should note that enabling developer mode will mean that iX will automatically delete any support requests you generate - ie, you're on your own buddy! It's not meant to be used for deployed TrueNAS systems, but if you're using unsupported hardware, it's the only way I know of being able to install the necessary kmods etc.
 
-In addition to this, Mafredri's Asustor platform driver has changed - this updated instruction set and scripts accomodate this.
-
-Thanks to github users **JeGr and sb10** for teasing out / testing the modifications required to build the updated platform driver.
-
 ---
 
-This project describes installing TrueNAS on Asustor's Flashstor 6 and 12 Pro (gen1) devices, and enabling temperature monitoring and fan control on these devices under TrueNAS SCALE. It is built on the original ideas in[ John Davis&#39; gist describing Installing Debian on the Nimbustor4/2 devices.](https://gist.github.com/johndavisnz/bae122274fc6f0e006fdf0bc92fe6237 "view John's gist")
+This project describes installing TrueNAS on Asustor's Flashstor 6 and 12 Pro devices, and enabling temperature monitoring and fan control on these devices under TrueNAS SCALE 22.12.3.3. It is built on the original ideas in[ John Davis&#39; gist describing Installing Debian on the Nimbustor4/2 devices.](https://gist.github.com/johndavisnz/bae122274fc6f0e006fdf0bc92fe6237 "view John's gist")
 
 While not officially supported, Asustor appear to quietly endorse installing TrueNAS on their devices - they even have a howto video in their youtube Asustor College: [https://youtu.be/YytWFtgqVy0] (TrueNAS Core Asustor install)]
 
@@ -38,7 +32,7 @@ Because: ZFS!
 
 ## CAVEATS
 
-* TrueNAS is an appliance. This is nerdspeak for 'don't be tinkering under the hood'. It's not a traditional Debian install, and trying to apt-get or update may break the system. The method detailed below requires developer mode, uses a custom kernel module, and some tinkering as root. As of Cobia, the dkms (Dynamic Kernel Module Support) package also needs to be installed.
+* TrueNAS is an appliance. This is nerdspeak for 'don't be tinkering under the hood'. It's not a traditional Debian install, and trying to apt-get or update may break the system. The method detailed below does not need any additional packages to be installed, but it does use a custom kernel module, and some tinkering as root. (If you're on TrueNAS-SCALE 23.x, please see the note above)
 * Tinkering with GPIO input/outputs can be dangerous and lead to instability, corrupted data or a broken system.
 * I am an enthusiastic amateur. Not a programmer. I can Do My Research, copy and paste, and (revelation!) use generative AI to write code. So, I probably won't be able to answer your complex questions. I also can't guarantee that this will work on your system
 * In short, PMD (People May Die), the world might end etc. Do this stuff **at your own risk**, and don't come whining if something breaks. Don't install it on a Mission Critical System. Back up your data. Test it extensively before trusting it. In short, be a Grown Up.
@@ -51,12 +45,11 @@ Here's a basic outline of what you will need to do to get TrueNAS SCALE working 
 
 1. Install TrueNAS SCALE on your Flashstor
 2. Access the shell through the TrueNAS web interface (or via SSH) using a user with sufficient permissions to play at being root.
-3. Enable Developer Mode
-4. Install dkms (Dynamic Kernel Module Support)
-5. Compile and install Mafredri's asustor-it87 platform driver kernel module (kmod)
-6. Install the check_asustor_it87.kmod.sh script - checks that the kmod exists at every reboot, and recompiles it if not
-7. Add the check_asustor_it87.kmod.sh script to TrueNAS' init scripts so that it runs after every boot.
-8. Install the custom fan control script - modified from John Davis' original script
+3. If you are on TrueNAS-SCALE 23.x (Cobia), enable Developer Mode
+4. Compile and install the it87 branch of mafredri's asustor-platform-driver kernel module (kmod)
+5. Install the check_asustor_it87.kmod.sh script - checks that the kmod exists at every reboot, and recompiles it if not
+6. Add the check_asustor_it87.kmod.sh script to TrueNAS' init scripts so that it runs after every boot.
+7. Install the custom fan control script - modified from John Davis' original script
 
 ---
 
@@ -75,7 +68,7 @@ Here's a basic outline of what you will need to do to get TrueNAS SCALE working 
 
 ## 1.5 Enable Developer Mode
 
-Execute `sudo install-dev-tools` from your root prompt. This will download and install a bunch of missing packages. It takes a few minutes. Once you've done this, don't bother trying to contact iX for help - they'll automatically delete any support requests.
+Only necessary for **TrueNAS-SCALE 23.x** (Cobia): Execute `install-dev-tools` from your root prompt. This will download and install a bunch of missing packages. It takes a few minutes. Once you've done this, don't bother trying to contact iX for help - they'll automatically delete any support requests.
 
 ---
 
@@ -97,7 +90,7 @@ You should see a long list of sensors, but no reference to an it8625 or fan spee
 
 ## 3. Compile and install the it87 kmod
 
-For reference, the link to mafredri's patched version of the mainline it87 kernel platform driver is here: [Asustor Platform Driver.](https://github.com/mafredri/asustor-platform-driver)
+For reference, the link to mafredri's patched version of the mainline it87 kernel platform driver is here: [Asustor-platform-driver](https://github.com/mafredri/asustor-platform-driver/blob/it87/README.md).
 
 This guide assumes you're logged in as the default admin user - you'll need to modify directory paths if you're someone else.
 
@@ -109,15 +102,27 @@ Execute the following commands in sequence (copy & paste each line and hit enter
 
 `cd asustor-platform-driver`
 
-- Install dkms
+- Check out the it87 branch
 
-`apt install dkms`
+`git checkout it87`
 
-- Compile and install the kmod
+- Compile the kmod
 
 `make`
 
-`make dkms`
+- Install the kmod
+
+`make install`
+
+*(Note - occasionally the system seems to get stuck on this command. If nothing happens for a few minutes, `<ctrl-c>`  to interrupt the command, and then issue it again - it usually works the 2nd time)*
+
+- Update module dependencies
+
+`depmod -a`
+
+- Load the module
+
+`modprobe -a asustor_it87`
 
 - Change back to the admin home directory
 
@@ -148,18 +153,6 @@ intrusion0:  ALARM
 ```
 
 The  `fan1 1433 RPM`  line is your asustor's fan, running at the default low speed setting.
-
-You can also check if the kmod is installed by copying and pasting the following code into the shell:
-
-```
-if lsmod | grep -q asustor_it87; then
-    echo "asustor-it87 kmod is already installed."
-  else
-    echo "asustor-it87 kmod not found or not installed."
- fi
-```
-
-You should see "asustor-it87 kmod is already installed"
 
 ---
 
@@ -237,7 +230,7 @@ Your work is done. Reboot your Flashstor. When it comes back online, you should 
 
 Try stressing the NAS - copy some files, run speed test etc and see if the fan speed changes. Remember that if you've used the defaults, nothing will happen until the CPU gets hotter than 50C, or any of the NVMe's get hotter than 35C.
 
-You can go back to the shell at any point and enter `sensors` at the command line to check the fan speed (you don't need to use sudo or be root for this.) If it's anything other than the default 1433 rpm, chances are things are working. Who's a clever boy/girl/insert-politically-correct-non-gender-specific-pronoun-here then?
+You can go back to the shell at any point and enter `sensors` at the command line to check the fan speed (you don't need to use sudo or be root for this. )
 
 ---
 

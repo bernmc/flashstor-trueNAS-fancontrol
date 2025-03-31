@@ -2,7 +2,7 @@
 
 This repository was originally written for TrueNAS-SCALE Bluefin. Since then, TrueNAS has moved on (it's increasingly locked down), as has the original Asustor Platform driver kernel module.
 
-These instructions and scripts have been updated (21 Oct 2024) and confirmed working with TrueNAS-SCALE-24.04.2.3 (Dragonfish). **It does NOT work with the current release candidate of TrueNAS-SCALE-24.10-RC.2 (Electric Eel)**. I will re-examine things when Electric Eel is officially released.
+These instructions and scripts have been updated (21 Oct 2024) and confirmed working with TrueNAS-SCALE-24.04.2.5 (Dragonfish). **It does NOT work with the current release candidate of TrueNAS-SCALE-24.10-RC.2 (Electric Eel)**. I will re-examine things when Electric Eel is officially released.
 
 **TrueNAS-SCALE Cobia (23.10.0****) and beyond:** Since the release of 23.x, iX have further locked down the appliance. If you upgrade from 22.x, and the original scripts, the shell and post-init scripts will survive, but the kmod will not 'make' and install as these commands are no longer available. At the moment, the only way I know to bypass this is to enable developer mode with `install-dev-tools.`
 

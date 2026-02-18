@@ -1,43 +1,68 @@
 #!/bin/sh
 
-: <<'EOF' #Introductory comment block:
-Asustor Flashstor kernel module check/compile script for TrueNAS-SCALE
-Checks to see if the necessary it87 kmod exists, installs it if not, and runs the fan control script
-By Bernard Mc Clement, Sept 2023. 
-Updated 10/2024 to support Dragonfish
-
-Note that you can check if the asustor-it87 kmod is installed by running the following command in the truenas shell:
- if lsmod | grep -q asustor_it87; then
-    echo "asustor-it87 kmod is already installed."
-  else
-    echo "asustor-it87 kmod not found or not installed."
- fi
-EOF
-
-
+# Asustor Flashstor kernel module check/compile script for TrueNAS-SCALE
+# Checks to see if the necessary it87 kmod exists, installs it if not, and runs the fan control script
+# By Bernard Mc Clement, Sept 2023
+# Updated Mar 2025 for Electric Eel / Fangtooth / Goldeye compatibility
+#
 # Add this as a post-init script so that it runs on every boot
+#
+# IMPORTANT NOTES:
+# - This script must be located on a DataPool (not /home) — /home is mounted noexec on Electric Eel+
+# - You must SSH in as root for the initial kmod compilation to work
+# - After the initial install, this script handles recompilation after kernel updates
+
+# =============================================================================
+# CONFIGURATION - CHANGE THESE TO MATCH YOUR SETUP
+# =============================================================================
+
+# Set this to the correct path of YOUR fan control script.
+# It must start with /mnt/ followed by your pool/dataset path.
+# Example: /mnt/MyPool/SystemTools/temp_monitor.sh
+FAN_CONTROL_SCRIPT_PATH="/mnt/<YourPool>/SystemTools/temp_monitor.sh"
+
+# =============================================================================
 
 # Check if the kmod exists and is installed
-if ! lsmod | grep -q asustor_it87; then
+if ! modinfo asustor-it87 >/dev/null 2>&1; then
     echo "asustor-it87 kmod not found or not installed. Compiling and installing..."
 
-    # Clone the repository
-    git clone https://github.com/mafredri/asustor-platform-driver
+    # Get the directory this script is in (for cloning the driver alongside it)
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    cd "$SCRIPT_DIR"
+
+    # Clone the repository if it doesn't already exist
+    if [ ! -d "asustor-platform-driver" ]; then
+        git clone https://github.com/mafredri/asustor-platform-driver
+    fi
+
     cd asustor-platform-driver
 
-    # Install dkms
-    sudo apt install -y dkms
+    # Checkout the it87 branch
+    git checkout it87
+
+    # Pull latest changes
+    git pull origin it87
 
     # Compile the kmod
-    sudo make
+    make
 
-    # Install the kmod using dkms
-    sudo make dkms
+    # Install the kmod
+    make install
 
-    echo "asustor-it87 kmod compiled and installed successfully."
+    # Update module dependencies
+    depmod -a
+
+    # Load the module
+    modprobe -a asustor_it87
+
+    echo "asustor-it87 kmod compiled, installed, and loaded successfully."
 else
+    # Module exists but may not be loaded — ensure it's loaded
+    modprobe -a asustor_it87
+
     echo "asustor-it87 kmod is already installed."
 fi
 
 # Run the fan control script
-nohup /home/admin/temp_monitor.sh >/dev/null 2>&1 &
+nohup $FAN_CONTROL_SCRIPT_PATH >/dev/null 2>&1 &

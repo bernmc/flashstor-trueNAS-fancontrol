@@ -154,7 +154,7 @@ function set_fan_speed() {
         new_pwm=255
     fi
 
-    echo $new_pwm > $hwmon_it87/pwm1
+    echo $new_pwm > $hwmon_it87/pwm1   # pwm1: 255 = max speed, 0 = stop (verified on Flashstor 12 Pro, 2026-09-03)
 
     if [ $debug -gt 1 ]; then
         echo "SET_FAN_SPEED: current=$current_pwm desired=$desired_pwm new=$new_pwm (change: $pwm_diff)"
@@ -366,7 +366,9 @@ if [[ $debug -gt 1 ]] ; then
    echo "MAIN: initial fan pwm=" $desired_pwm
 fi
 
-set_fan_speed
+# At startup jump straight to the target (no ramp) so the fan doesn't sit at the
+# firmware default until temperatures happen to move the target.
+echo $desired_pwm > $hwmon_it87/pwm1
 
 # now loop forever monitoring and reacting
 cycles=$ratio_sys_to_hdd

@@ -225,9 +225,20 @@ Once everything is working, disable root SSH login:
 
 ## After a TrueNAS Upgrade
 
-When TrueNAS is upgraded, the kernel may change and the kernel module will need to be recompiled. **In most cases, this happens automatically** — the `check_asustor_it87.kmod.sh` boot script runs after every reboot via the TrueNAS init system, checks if the module is present, and recompiles it if not.
+When TrueNAS is upgraded, the kernel usually changes and the kernel module must be recompiled. The `check_asustor_it87.kmod.sh` boot script detects the missing module on the first boot and tries to rebuild it, **but the rebuild fails after every TrueNAS upgrade** because the upgrade installs a fresh root filesystem without the compiler and kernel headers. Until you re-run `install-dev-tools`, the fan control script starts with no sensor chip to talk to and the fan sits at the BIOS default speed (safe, but uncontrolled).
 
-There is no separate upgrade script — `check_asustor_it87.kmod.sh` handles everything.
+So after each upgrade, expect to do this once (confirmed on 25.10.3 → 25.10.7):
+
+```bash
+sudo install-dev-tools
+sudo systemd-run --unit=fanbuild --wait --collect -p WorkingDirectory=/mnt/<YourPool>/SystemTools \
+    /bin/sh -c './check_asustor_it87.kmod.sh > fanbuild.log 2>&1'
+sudo setsid nohup /mnt/<YourPool>/SystemTools/temp_monitor.sh >/dev/null 2>&1 &
+```
+
+> **Why `systemd-run` and not just `sudo ./check_asustor_it87.kmod.sh`?** TrueNAS ships sudo with `Defaults log_subcmds`, which makes sudo trace every child process so it can log it. The kernel build system's very long compiler command lines trip that check and the compiler is killed (`sudo: argv[2] mismatch` ... `Killed`). This is the real reason older instructions said "you must SSH in as root": root's login shell has no sudo in the process tree. `systemd-run` hands the job to PID 1, which is also outside sudo's tracing, so it works from an admin account with passwordless sudo. Cron tasks created in the TrueNAS UI run through sudo too, so they hit the same problem; Init/Shutdown scripts do not, which is why the boot-time rebuild works once the tools are installed.
+
+There is no separate upgrade script — `check_asustor_it87.kmod.sh` handles the rebuild; you only have to put the compiler back.
 
 ### If the fan control stops working after an upgrade
 

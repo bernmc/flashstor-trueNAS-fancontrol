@@ -38,11 +38,12 @@ if ! modinfo asustor-it87 >/dev/null 2>&1; then
 
     cd asustor-platform-driver
 
-    # Checkout the it87 branch
-    git checkout it87
 
-    # Pull latest changes
-    git pull origin it87
+    # Pull latest changes (the old it87 branch was merged into main; failure here is not fatal)
+    git pull origin main || true
+
+    # Discard objects built against a previous kernel so make cannot reuse them
+    make clean
 
     # Compile the kmod
     make
